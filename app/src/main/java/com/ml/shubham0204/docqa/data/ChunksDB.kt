@@ -12,7 +12,7 @@ class ChunksDB {
 
     fun getSimilarChunks(
         queryEmbedding: FloatArray,
-        n: Int = 5,
+        n: Int = 50,
     ): List<Pair<Float, Chunk>> {
         /*
         Use maxResultCount to set the maximum number of objects to return by the ANN condition.
