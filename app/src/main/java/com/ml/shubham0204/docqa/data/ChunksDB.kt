@@ -22,7 +22,7 @@ class ChunksDB {
         (quality/performance tradeoff).
          */
         return chunksBox
-            .query(Chunk_.chunkEmbedding.nearestNeighbors(queryEmbedding, 25))
+            .query(Chunk_.chunkEmbedding.nearestNeighbors(queryEmbedding, 50))
             .build()
             .findWithScores()
             .map { Pair(it.score.toFloat(), it.get()) }
