@@ -1,77 +1,53 @@
-name: Build and Release Android APK
+name: 构建并发布 Android APK
 
 on:
   push:
     branches:
-      - main  # 替换为你的主分支名称
-  workflow_dispatch:
+      - main  # 替换为您希望触发工作流程的分支名称
 
 jobs:
-  build_apk:
+  build-apk:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - name: Checkout code
+      - name: 检出代码
         uses: actions/checkout@v3
         with:
           submodules: 'true'
 
-      - name: Set up JDK 17
+      - name: 设置 JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Grant execute permission for gradlew
+      - name: 授予 gradlew 执行权限
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew assembleRelease
+      - name: 使用 Gradle 构建
+        run: ./gradlew build
 
-      - name: Generate debug keystore
-        run: |
-          keytool -genkey -v -keystore debug.keystore -keyalg RSA -keysize 2048 -validity 10000 -alias androiddebugkey \
-            -storepass android -keypass android -dname "CN=Android Debug, O=Android, C=US"
-          echo "Debug keystore generated successfully!"
+      - name: 构建调试 APK
+        run: ./gradlew assembleDebug --stacktrace
 
-      - name: Find unsigned APK files
-        id: find-unsigned-apk
-        run: |
-          apk_path=$(find app/build/outputs/apk/ -name "*-unsigned.apk" | head -n 1)
-          echo "Found unsigned APK path: $apk_path"
-          echo "apk_path=$apk_path" >> $GITHUB_ENV
-
-      - name: Set up apksigner path
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)" >> $GITHUB_PATH
-
-      - name: Sign APK with debug keystore
-        run: |
-          apksigner sign \
-            --ks debug.keystore \
-            --ks-pass pass:android \
-            --key-pass pass:android \
-            --out app-release-signed.apk \
-            ${{ env.apk_path }}
-
-      - name: Find signed APK files
-        id: find-signed-apk
-        run: |
-          signed_apk_path=$(find . -name "app-release-signed.apk" | head -n 1)
-          echo "Found signed APK path: $signed_apk_path"
-          echo "signed_apk_path=$signed_apk_path" >> $GITHUB_ENV
-
-      - name: Upload signed APK
-        uses: actions/upload-artifact@v4
+      - name: 创建发布
+        uses: actions/create-release@v1
+        id: create_release
         with:
-          name: my-app-artifacts
-          path: ${{ env.signed_apk_path }}
+          tag_name: ${{ github.sha }}  # 使用提交 SHA 作为唯一标识
+          release_name: Debug APK - ${{ github.sha }}
+          draft: false
+          prerelease: false
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: 上传调试 APK 到发布
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/debug/app-debug.apk
+          asset_name: Android-Doc-QA_${{ github.sha }}_debug.apk
+          asset_content_type: application/vnd.android.package-archive
