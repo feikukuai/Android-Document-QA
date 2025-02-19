@@ -21,42 +21,38 @@ android {
             useSupportLibrary = true
         }
     }
-    signingConfigs {
-        create("release") {
-            storeFile = file("../keystore.jks")
-            storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("RELEASE_KEYSTORE_ALIAS")
-            keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
-        }
-    }
+
     buildTypes {
-        // Add the field 'geminiKey' in the build config
-        // See https://stackoverflow.com/a/60474096/13546426
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("release")
+            // 移除发布签名配置
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
+
     packaging {
         resources {
             excludes += "META-INF/DEPENDENCIES"
         }
     }
+
     applicationVariants.configureEach {
         kotlin.sourceSets {
             getByName(name) {
@@ -87,7 +83,6 @@ dependencies {
     implementation(libs.apache.poi.ooxml)
 
     // Sentence Embeddings
-    // https://github.com/shubham0204/Sentence-Embeddings-Android
     implementation(libs.sentence.embeddings.android)
 
     // iTextPDF - for parsing PDFs
@@ -101,7 +96,6 @@ dependencies {
     implementation(libs.generativeai)
 
     // compose-markdown
-    // https://github.com/jeziellago/compose-markdown
     implementation(libs.compose.markdown)
 
     // Koin dependency injection
