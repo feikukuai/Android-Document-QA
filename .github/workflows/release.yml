@@ -1,3 +1,4 @@
+ 
 name: 构建并发布 Android APK
 
 on:
@@ -31,7 +32,8 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace
 
       - name: 上传 APK 到 Artifacts
-        uses: actions/upload-artifact@v2  # Use version v2 here
+        uses: actions/upload-artifact@v2
         with:
           name: app-debug  # Artifact 名称
           path: app/build/outputs/apk/debug/app-debug.apk  # APK 路径
+ 
