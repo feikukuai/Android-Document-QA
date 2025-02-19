@@ -26,7 +26,7 @@ class ChunksDB {
             .build()
             .findWithScores()
             .map { Pair(it.score.toFloat(), it.get()) }
-            .subList(0, n)
+            .subList(0, 100)
     }
 
     fun removeChunks(docId: Long) {
